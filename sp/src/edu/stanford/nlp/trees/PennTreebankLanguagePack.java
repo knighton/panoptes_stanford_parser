@@ -194,7 +194,7 @@ public class PennTreebankLanguagePack extends AbstractTreebankLanguagePack {
   /** {@inheritDoc} */
   @Override
   public HeadFinder typedDependencyHeadFinder() {
-    return new SemanticHeadFinder(this, true);
+    return new SemanticHeadFinder(this, false);
   }
 
 
