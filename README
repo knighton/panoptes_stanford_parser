@@ -1,0 +1,85 @@
+How to work with the Stanford parser:
+
+
+1. Visit the Stanford Parser download page, and find the latest release:
+
+    * http://nlp.stanford.edu/software/lex-parser.shtml#Download
+    * http://nlp.stanford.edu/software/stanford-parser-full-2015-01-29.zip
+
+
+2. Extract the code:
+
+    * mkdir tmp
+      cd tmp
+      wget http://nlp.stanford.edu/software/stanford-parser-full-2015-01-29.zip
+      unzip *.zip
+      unzip stanford-parser-full-2015-01-30/ejml-0.23-src.zip 
+      jar xvf stanford-parser-full-2015-01-30/stanford-parser-3.5.1-sources.jar 
+
+      mkdir sp
+      mkdir sp/src
+      mv edu sp/src/
+      mv ejml-0.23 ejml
+      rm -rf META-INF/
+
+      cp stanford-parser-full-2015-01-30/build.xml sp/
+
+
+3. Create a new makefile at "out/src/Makefile":
+
+--------------------------------------------------------------------------------
+do_ejml:
+    cd ejml; ant
+    cp ejml/build/jar/EJML.jar sp/
+
+do_sp:
+    cd sp; ant -logger org.apache.tools.ant.listener.AnsiColorLogger
+    cd sp/classes; jar cf stanford-parser.jar edu/stanford/nlp/*/*.class edu/stanford/nlp/*/*/*.class edu/stanford/nlp/*/*/*/*.class
+    mv sp/classes/stanford-parser.jar .
+
+all: do_ejml do_sp
+
+clean:
+    rm -rf ejml/build/
+    rm -rf sp/classes/
+    rm -f EJML.jar stanford-parser.jar
+--------------------------------------------------------------------------------
+
+
+4. Create a gitignore at ".gitignore":
+
+--------------------------------------------------------------------------------
+ejml/build/
+sp/classes/
+sp/EJML.jar
+stanford-parser.jar
+--------------------------------------------------------------------------------
+
+
+5. Get dependencies:
+
+    * apt-get install ant
+
+
+6. Build everything:
+
+    * make all
+
+
+7. Extract just the model we want:
+
+    * jar xvf stanford-parser-full-2015-01-30/stanford-parser-3.5.1-models.jar 
+      mv edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz .
+      rm -rf edu/ META-INF/
+
+
+8. Run a demo server:
+
+--------------------------------------------------------------------------------
+#!/bin/sh
+
+port=1337
+model=englishPCFG.ser.gz
+java -mx150m -cp ./*: edu.stanford.nlp.parser.server.LexicalizedParserServer \
+    --port $port --model $model
+--------------------------------------------------------------------------------
